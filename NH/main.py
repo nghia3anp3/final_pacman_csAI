@@ -57,9 +57,9 @@ def play():
         sys.exit()
       if event.type == pygame.MOUSEBUTTONDOWN:
         if PLAY_LEVEL1.checkForInput(PLAY_MOUSE_POS):
-          Level1_go()
+          Level12_algo()
         if PLAY_LEVEL2.checkForInput(PLAY_MOUSE_POS):
-          Level2_go()
+          Level12_algo()
         if PLAY_LEVEL3.checkForInput(PLAY_MOUSE_POS):
           Level3_go()
         if PLAY_LEVEL4.checkForInput(PLAY_MOUSE_POS):
@@ -69,12 +69,48 @@ def play():
 
     pygame.display.update()
 
-def Level1_go():
+def Level12_algo():
+  while True:
+    LEVEL12_MOUSE_POS = pygame.mouse.get_pos()
+
+    screen.fill("black")
+
+    LEVEL12_TEXT = get_font(45).render("Choose algorithm:", True, "White")
+    LEVEL12_RECT = LEVEL12_TEXT.get_rect(center=(640, 100))
+    screen.blit(LEVEL12_TEXT, LEVEL12_RECT)
+
+    ASTAR_LEVEL12 = Button(image=None, pos=(640, 200),
+                       text_input="Astar", font=get_font(40), base_color="White", hovering_color="Green")
+    BFS_LEVEL12 = Button(image=None, pos=(640, 300),
+                       text_input="BFS", font=get_font(40), base_color="White", hovering_color="Green")
+    DFS_LEVEL12 = Button(image=None, pos=(640, 400),
+                       text_input="DFS", font=get_font(40), base_color="White", hovering_color="Green")
+    UCS_LEVEL12 = Button(image=None, pos=(640, 500),
+                       text_input="UCS", font=get_font(40), base_color="White", hovering_color="Green")
+
+    for button in [ASTAR_LEVEL12, BFS_LEVEL12, DFS_LEVEL12, UCS_LEVEL12]:
+      button.changeColor(LEVEL12_MOUSE_POS)
+      button.update(screen)
+
+    for event in pygame.event.get():
+      if event.type == pygame.QUIT:
+        pygame.quit()
+        sys.exit()
+      if event.type == pygame.MOUSEBUTTONDOWN:
+        if ASTAR_LEVEL12.checkForInput(LEVEL12_MOUSE_POS):
+          Level12_go('astar')
+        if BFS_LEVEL12.checkForInput(LEVEL12_MOUSE_POS):
+          Level12_go('bfs')
+        if DFS_LEVEL12.checkForInput(LEVEL12_MOUSE_POS):
+          Level12_go('dfs')
+        if UCS_LEVEL12.checkForInput(LEVEL12_MOUSE_POS):
+          Level12_go('ucs')
+
+    pygame.display.update()
+
+def Level12_go(algo):
   global map_pos
-  Level12.Level12(map_dict['Level1'][map_pos])
-def Level2_go():
-  global map_pos
-  Level12.Level12(map_dict['Level2'][map_pos])
+  Level12.Level12(map_dict['Level1'][map_pos],algo)
 def Level3_go():
   global map_pos
   Level3.Level3(map_dict['Level3'][map_pos])
@@ -117,8 +153,8 @@ def Level4_max_depth():
           else:
             max_depth -=1
         if OPTIONS_NEXT.checkForInput(OPTIONS_MOUSE_POS):
-          if max_depth == 25:
-            max_depth = 25
+          if max_depth == 30:
+            max_depth = 30
           else:
             max_depth += 1
         if OPTIONS_BACK.checkForInput(OPTIONS_MOUSE_POS):

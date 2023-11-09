@@ -8,6 +8,8 @@ import Astar
 import Food
 pygame.init()
 pygame.font.init()
+import timeit
+
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("PacMan")
@@ -20,38 +22,54 @@ def display_message(message):
     text_rect = text.get_rect()
     text_rect.center = (WIDTH // 2, HEIGHT // 2)
     screen.blit(text, text_rect)
-def Level12(map_input):
+def Level12(map_input,algo):
     global score
     map = map_input[0]
     pac_pos = map_input[1]
     food = map_input[2][0]
     monster = map_input[3]
-    path = Astar.astar(map, pac_pos, food)
+    if algo == 'astar':
+        path = Astar.astar(map, pac_pos, food)
+    if algo == 'bfs':
+        path = Astar.BFS(map, pac_pos, food)
+    if algo == 'dfs':
+        path = Astar.DFS(map, pac_pos, food)
+    if algo == 'ucs':
+        path = Astar.UCS(map, pac_pos, food)
+    blocked_food = False
     luffy = Luffy.luffy_right
     marine = Marine.marine_left
     meat = Food.meat
-    # marine_list = monster
     path_i = 0
-    # endings = Luffy.endings
     victory_check = False
-    # for i in range(len(endings)):
-    #     endings[i] = pygame.transform.scale(endings[i], (WIDTH, HEIGHT))
     running = True
     screen.blit(game_bg, (0, 0))
+    if path == None:
+        blocked_food = True
+        Map.create_map(map, screen, CELL_SIZE)
+        screen.blit(luffy, (get_map_pos_y(map, CELL_SIZE) + pac_pos[1] * CELL_SIZE,
+                            get_map_pos_x(map, CELL_SIZE) + pac_pos[0] * CELL_SIZE))
+        screen.blit(meat, (
+        get_map_pos_y(map, CELL_SIZE) + food[1] * CELL_SIZE, get_map_pos_x(map, CELL_SIZE) + food[0] * CELL_SIZE))
+        display_message("No path found!")
+        pygame.display.update()
+        time.sleep(2)
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        if not victory_check:
+        if blocked_food:
+            victory_state(screen)
+            text = get_font(30).render(f"Score: {score}", True, BLACK)
+            screen.blit(text, (80, 470))
+            text = get_font(30).render(f"Blocked food: 1", True, BLACK)
+            screen.blit(text, (80, 520))
+            pygame.display.update()
+        elif not victory_check:
             screen.blit(game_bg, (0, 0))
             Map.create_map(map, screen, CELL_SIZE)
             for x, y in monster:
                 screen.blit(marine, (get_map_pos_y(map,CELL_SIZE)+y * CELL_SIZE,get_map_pos_x(map,CELL_SIZE)+ x * CELL_SIZE))
-            if path == None:
-                screen.blit(luffy, (get_map_pos_y(map, CELL_SIZE) + pac_pos[1] * CELL_SIZE, get_map_pos_x(map, CELL_SIZE) + pac_pos[0] * CELL_SIZE))
-                screen.blit(meat, (get_map_pos_y(map,CELL_SIZE)+food[0][1] * CELL_SIZE,get_map_pos_x(map,CELL_SIZE)+ food[0][0] * CELL_SIZE))
-                display_message("No path found!")
-                pygame.display.update()
             else:
                 screen.blit(meat, (get_map_pos_y(map,CELL_SIZE)+ food[1] * CELL_SIZE,get_map_pos_x(map,CELL_SIZE) + food[0] * CELL_SIZE))
                 if path_i < len(path)-1:
@@ -76,7 +94,9 @@ def Level12(map_input):
         else:
             victory_state(screen)
             text = get_font(30).render(f"Score: {score}", True, BLACK)
-            screen.blit(text, (80, 500))
+            screen.blit(text, (80, 470))
+            text = get_font(30).render(f"Blocked food: 0", True, BLACK)
+            screen.blit(text, (80, 520))
             pygame.display.update()
     pygame.quit()
     sys.exit()

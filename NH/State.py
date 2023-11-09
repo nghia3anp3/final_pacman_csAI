@@ -199,7 +199,6 @@ class State():
     
     def is_blocked(self):
         for x in self.list_food:
-            print("Gia tri block: ", getFoodObservation(x, self.wall))
             if getFoodObservation(x, self.wall) != 4:
                 return False, 0
         

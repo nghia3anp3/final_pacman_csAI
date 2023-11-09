@@ -155,6 +155,23 @@ def heuristic(maze, pacman_pos, dict_score_maze,foods, pacman_path, monsters_nod
 def IdentifyStep(maze, pacman_pos, monsters_node, dict_score_maze,foods,pacman_path):
     dict_score, dict_score_maze = heuristic(maze, pacman_pos, dict_score_maze,foods, pacman_path, monsters_node)
     return max(dict_score.items(),key=lambda x:x[1])[0]
+
+def check_wall_monster_around_food(maze,food):
+    food_neighbors = []
+    for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+        x, y = food[0] + dx, food[1] + dy
+        if (0 <= x < len(maze) and 0 <= y < len(maze[0])):
+            food_neighbors.append((x, y))
+    for neighbor in food_neighbors:
+        if maze[neighbor[0]][neighbor[1]] not in [1,3]:
+            return False
+    return True
+def count_wall_monster_around_food(maze,foods):
+    count = 0
+    for food in foods:
+        if check_wall_monster_around_food(maze,food)==True:
+            count+=1
+    return count
 def pre_Level3(maze_in):
     maze_input = copy.deepcopy(maze_in)
     maze = maze_input[0]
@@ -166,22 +183,23 @@ def pre_Level3(maze_in):
     monsters_path = [[i[0] for i in monsters_node]]
     dict_score_maze = {}
     maze1 = copy.deepcopy(maze)
+    count = count_wall_monster_around_food(maze,foods)
     while(True):
-        if not foods:
-            break
+        if count==len(foods):
+            return maze1, pacman_path, monsters_path, 'block',count
         dict_score, dict_score_maze = heuristic(maze1, pacman_pos, dict_score_maze,foods, pacman_path, monsters_node)
         pacman_pos = IdentifyStep(maze1,pacman_pos,monsters_node,dict_score_maze,foods, pacman_path)
         pacman_path.append(pacman_pos)
         maze1, monsters_node, monsters_path = MonsterMove(maze1, monsters_node, foods,monsters_path)
         if pacman_pos in [i[0] for i in monsters_node]:
-            return maze1,pacman_path, monsters_path,'dead'
+            return maze1,pacman_path, monsters_path,'dead',count
         if pacman_pos in foods:
             maze1, foods = eatFood(maze1, pacman_pos,foods)
             if not foods:
-                return maze1,pacman_path, monsters_path,'alive'
+                return maze1,pacman_path, monsters_path,'alive',count
 def Level3(maze_input):
     global score
-    maze, pacman_path, monsters_path, status = pre_Level3(maze_input)
+    maze, pacman_path, monsters_path, status, food_remain = pre_Level3(maze_input)
     foods = maze_input[2]
     print(foods)
     luffy = Luffy.luffy_right
@@ -193,11 +211,19 @@ def Level3(maze_input):
     path_i = 0
     victory_check = False
     lost_check = False
+    block_check = False
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-        if not victory_check and not lost_check:
+        if block_check:
+            victory_state(screen)
+            text = get_font(30).render(f"Score: {score}", True, BLACK)
+            screen.blit(text, (80, 470))
+            text = get_font(30).render(f"Blocked food: {food_remain}", True, BLACK)
+            screen.blit(text, (80, 520))
+            pygame.display.update()
+        elif not victory_check and not lost_check:
             screen.blit(game_bg, (0, 0))
             Map.create_map(maze_input[0], screen, CELL_SIZE)
             if pacman_path[path_i] in foods:
@@ -223,17 +249,21 @@ def Level3(maze_input):
                                     get_map_pos_x(maze, CELL_SIZE) + monsters_path[path_i][monster_index][0] * CELL_SIZE))
             if path_i == len(pacman_path)-1 and status == "dead":
                 lost_check = True
+            if path_i == len(pacman_path)-1 and status == "block":
+                block_check = True
             text = font.render(f"Score: {score}", True, BLACK)
             screen.blit(text, (10, 10))
             pygame.display.update()
-            time.sleep(0.01)
+            time.sleep(0.08)
             path_i += 1
             if foods == []:
                 victory_check = True
         elif victory_check:
             victory_state(screen)
-            text = font.render(f"Score: {score}", True, BLACK)
-            screen.blit(text, (60, 500))
+            text = get_font(30).render(f"Score: {score}", True, BLACK)
+            screen.blit(text, (80, 470))
+            text = get_font(30).render(f"Blocked food: {food_remain}", True, BLACK)
+            screen.blit(text, (80, 520))
             pygame.display.update()
         elif lost_check:
             lost_state(screen)

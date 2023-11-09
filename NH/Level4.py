@@ -82,7 +82,6 @@ def minimax(agentIndex, depth, gameState, max_depth):
         return value
 
 def Level4(map_input, max_depth):
-    global score
     map = map_input[0]
     pac_pos = map_input[1]
     food = map_input[2]
@@ -126,9 +125,13 @@ def Level4(map_input, max_depth):
 
         block_test, food_remain = init_state.is_blocked()
         if block_test:
-            print("Food con lai la: ", food_remain)
-            break
-        if not victory_check and not lost_check:
+            victory_state(screen)
+            text = get_font(30).render(f"Score: {init_state.score}", True, BLACK)
+            screen.blit(text, (80, 470))
+            text = get_font(30).render(f"Blocked food: {food_remain}", True, BLACK)
+            screen.blit(text, (80, 520))
+            pygame.display.update()
+        elif not victory_check and not lost_check:
             state_recusive = init_state.copy()
             backup_state = init_state.copy()
             agents = init_state.getAgents()
@@ -151,7 +154,6 @@ def Level4(map_input, max_depth):
                 
                 if len(action_scores)==0:
                     lost_check = True
-                    print('gg')
                     continue
                 max_action = max(action_scores)
                 max_indices = [index for index in range(len(action_scores)) if action_scores[index] == max_action]
@@ -176,22 +178,18 @@ def Level4(map_input, max_depth):
                 init_state.repain()
                 marine_path = []
                 luffy_path = []
-
                 marine_pos = [x.get_pos() for x in init_state.list_ghost]
-
-                if (len(init_state.list_food) == 0):
-                    victory_check = True
-                    text = get_font(50).render(f"Score: {score}", True, BLACK)
-                    screen.blit(text, (60, 500))
-                    victory_state(screen)
-                    pygame.display.update()
             agentIndex = (agentIndex + 1) % numAgents
             time.sleep(0.001)
             
         if victory_check:
-            text = get_font(50).render(f"Score: {score}", True, BLACK)
+            text = get_font(50).render(f"Score: {init_state.score}", True, BLACK)
             screen.blit(text, (60, 500))
             victory_state(screen)
+            text = get_font(30).render(f"Score: {init_state.score}", True, BLACK)
+            screen.blit(text, (80, 470))
+            text = get_font(30).render(f"Blocked food: {food_remain}", True, BLACK)
+            screen.blit(text, (80, 520))
             pygame.display.update()
         if lost_check:
             lost_state(screen)
